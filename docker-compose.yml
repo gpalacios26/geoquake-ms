@@ -1,0 +1,22 @@
+services:
+  
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      - ./mongo-data:/data/db
+    networks:
+      - geoquake-net
+
+volumes:
+  mongo-data:
+    name: mongo-data
+  
+networks:
+  geoquake-net:
+    name: geoquake-net

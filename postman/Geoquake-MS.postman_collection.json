@@ -1,0 +1,99 @@
+{
+	"info": {
+		"_postman_id": "d6bc130b-ba57-4517-a24a-e2c6774a74f7",
+		"name": "Geoquake-MS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6370137",
+		"_collection_link": "https://nttdata-8314.postman.co/workspace/NTTDATA~6ee45e0a-5cff-41b4-811c-50f1f85fbd72/collection/6370137-d6bc130b-ba57-4517-a24a-e2c6774a74f7?action=share&source=collection_link&creator=6370137"
+	},
+	"item": [
+		{
+			"name": "Save Quake",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"intensity\": 5.5,\r\n    \"deepness\": 35.3,\r\n    \"geo\": {\r\n        \"latitude\": -12.046375,\r\n        \"longitude\": -77.042893\r\n    },\r\n    \"dateTime\": \"2025-05-12T18:30:00\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/quake",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"quake"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Quakes",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/quake",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"quake"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Report Quake",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"geo\": {\r\n        \"latitude\": -12.046375,\r\n        \"longitude\": -77.042893\r\n    },\r\n    \"radiusKm\": 100,\r\n    \"date\": \"2025-05-12\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/quake/report",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"quake",
+						"report"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

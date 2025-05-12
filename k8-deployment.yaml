@@ -1,0 +1,137 @@
+# ConfigMap para variables de entorno
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: geoquake-config
+data:
+  SPRING_DATA_MONGODB_URI: mongodb://admin:admin@mongodb:27017
+
+---
+# Secret para credenciales de MongoDB
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-secret
+type: Opaque
+data:
+  MONGO_INITDB_ROOT_USERNAME: YWRtaW4= # admin en base64
+  MONGO_INITDB_ROOT_PASSWORD: YWRtaW4= # admin en base64
+
+---
+# PersistentVolume para MongoDB
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongo-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /data/mongodb
+
+---
+# PersistentVolumeClaim para MongoDB
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# Deployment para MongoDB
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:6.0
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_INITDB_ROOT_USERNAME
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: MONGO_INITDB_ROOT_PASSWORD
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+      volumes:
+      - name: mongo-data
+        persistentVolumeClaim:
+          claimName: mongo-pvc
+
+---
+# Service para MongoDB
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+spec:
+  ports:
+  - port: 27017
+    targetPort: 27017
+  selector:
+    app: mongodb
+
+---
+# Deployment para geoquake-app
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geoquake-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: geoquake-app
+  template:
+    metadata:
+      labels:
+        app: geoquake-app
+    spec:
+      containers:
+      - name: geoquake-app
+        image: localhost:5000/geoquake-app
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: geoquake-config
+
+---
+# Service para geoquake-app
+apiVersion: v1
+kind: Service
+metadata:
+  name: geoquake-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: geoquake-app
