@@ -2,7 +2,9 @@ package com.gpc.geoquake.controller;
 
 import com.gpc.geoquake.dto.QuakeDTO;
 import com.gpc.geoquake.dto.QuakeReportDTO;
+import com.gpc.geoquake.dto.QuakeReportEventDTO;
 import com.gpc.geoquake.dto.QuakeReportFilterDTO;
+import com.gpc.geoquake.dto.QuakeStreamFilterDTO;
 import com.gpc.geoquake.model.Quake;
 import com.gpc.geoquake.service.QuakeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,6 +64,12 @@ public class QuakeController {
             .body(exchange)
         )
         .defaultIfEmpty(ResponseEntity.notFound().build());
+  }
+
+  @PostMapping(value = "/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  @Operation(summary = "Movimiento Telúrico - Tiempo Real", description = "Devuelve los movimientos telúricos en tiempo real")
+  public Flux<QuakeReportEventDTO> streamQuakeReport(@Valid @RequestBody QuakeStreamFilterDTO dto) {
+    return service.streamQuakeReport(dto);
   }
 
   private QuakeDTO convertToDto(Quake model) {
