@@ -5,6 +5,7 @@ metadata:
   name: geoquake-config
 data:
   SPRING_DATA_MONGODB_URI: mongodb://admin:admin@mongodb:27017
+  SPRING_KAFKA_URI: kafka-service:9092
 
 ---
 # Secret para credenciales de MongoDB
@@ -14,8 +15,8 @@ metadata:
   name: mongodb-secret
 type: Opaque
 data:
-  MONGO_INITDB_ROOT_USERNAME: YWRtaW4= # admin en base64
-  MONGO_INITDB_ROOT_PASSWORD: YWRtaW4= # admin en base64
+  MONGO_INITDB_ROOT_USERNAME: YWRtaW4= # valor en base64
+  MONGO_INITDB_ROOT_PASSWORD: YWRtaW4= # valor en base64
 
 ---
 # PersistentVolume para MongoDB
@@ -97,6 +98,92 @@ spec:
   selector:
     app: mongodb
 
+---
+# Deployment para zookeeper
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zookeeper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+        - name: zookeeper
+          image: confluentinc/cp-zookeeper:7.5.0
+          ports:
+            - containerPort: 2181
+          env:
+            - name: ZOOKEEPER_CLIENT_PORT
+              value: "2181"
+            - name: ZOOKEEPER_TICK_TIME
+              value: "2000"
+
+---
+# Service para zookeeper
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper-service
+spec:
+  ports:
+    - port: 2181
+      targetPort: 2181
+  selector:
+    app: zookeeper
+    
+---
+# Deployment para kafka
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: confluentinc/cp-kafka:7.5.0
+          ports:
+            - containerPort: 9092
+          env:
+            - name: KAFKA_BROKER_ID
+              value: "1"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: zookeeper-service:2181
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://kafka-service:9092
+            - name: KAFKA_LISTENERS
+              value: PLAINTEXT://0.0.0.0:9092
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+          
+---
+# Service para kafka
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-service
+spec:
+  ports:
+    - port: 9092
+      targetPort: 9092
+  selector:
+    app: kafka
+    
 ---
 # Deployment para geoquake-app
 apiVersion: apps/v1

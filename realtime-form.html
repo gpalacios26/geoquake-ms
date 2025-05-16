@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Test GeoQuake Realtime</title>
+  <style>
+    body { font-family: sans-serif; }
+    #output { border: 1px solid #333; min-height: 120px; padding: 10px; background: #f9f9f9; }
+    label, input, button { display: block; margin: 10px 0; }
+    input { width: 200px; }
+  </style>
+</head>
+<body>
+  <h2>Test GeoQuake Realtime Streaming</h2>
+  <form id="streamForm">
+    <label>Latitud:
+      <input id="lat" type="number" step="any" value="-12.046375" required />
+    </label>
+    <label>Longitud:
+      <input id="lng" type="number" step="any" value="-77.042893" required />
+    </label>
+    <label>Radio (km):
+      <input id="radius" type="number" step="any" value="100" required />
+    </label>
+    <button type="submit">Conectar al stream</button>
+  </form>
+  <div id="output"></div>
+  <script>
+    const output = document.getElementById('output');
+    const form = document.getElementById('streamForm');
+    let abortController = null;
+
+    form.onsubmit = async e => {
+      e.preventDefault();
+      output.innerHTML = '';
+      if (abortController) abortController.abort();
+      abortController = new AbortController();
+
+      const lat = parseFloat(document.getElementById('lat').value);
+      const lng = parseFloat(document.getElementById('lng').value);
+      const radius = parseFloat(document.getElementById('radius').value);
+
+      if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
+        output.innerHTML = '<span style="color:red">Valores inválidos</span>';
+        return;
+      }
+
+      const payload = JSON.stringify({
+        geo: { latitude: lat, longitude: lng },
+        radiusKm: radius
+      });
+
+      output.innerHTML = '<i>Conectando...</i>';
+
+      try {
+        const resp = await fetch('http://localhost:8080/api/quake/realtime', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          signal: abortController.signal,
+        });
+
+        if (!resp.ok) {
+          output.innerHTML = `<span style="color:red">HTTP ${resp.status}</span>`;
+          return;
+        }
+
+        output.innerHTML = '<b>Recibiendo stream:</b><br>';
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const {done, value} = await reader.read();
+          if (done) break;
+          output.innerHTML += decoder.decode(value).replace(/\n/g, '<br>');
+          output.scrollTop = output.scrollHeight;
+        }
+        output.innerHTML += '<br><i>Stream finalizado</i>';
+      } catch (err) {
+        output.innerHTML += `<br><i>Conexión cerrada o error: ${err.message}</i>`;
+      }
+    };
+  </script>
+</body>
+</html>
