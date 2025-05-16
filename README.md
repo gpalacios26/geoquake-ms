@@ -1,6 +1,6 @@
 # Code challenge - Ejercicio Lvl 4: Microservicio GeoQuake
 
-Este proyecto es un microsevicio **Java** utilizando **Spring Boot** y **WebFlux** para construir una API reactiva de captura y exposici��n de movimientos tel��ricos.
+Este proyecto es un microsevicio **Java** utilizando **Spring Boot** y **WebFlux** para construir una API reactiva de captura y exposición de movimientos telúricos.
 
 ---
 
@@ -13,7 +13,13 @@ git clone https://github.com/gpalacios26/geoquake-ms.git
 cd geoquake-ms
 ```
 
-### 2️⃣ Ejecutar la aplicación
+### 2️⃣ Ejecutar los servicios de mongodb y kafka / Ejecutar la aplicación
+
+Con **Docker**:
+
+```bash
+docker compose up -d
+```
 
 Con **Maven**:
 
@@ -54,3 +60,4 @@ El reporte de cobertura de pruebas se genera con `Jacoco` en la carpeta `target/
 - **Java 17** instalado.
 - **Maven** configurado.
 - IDE recomendado: **IntelliJ IDEA**.
+- **Docker Desktop** instalado y configurado (docker compose - kubectl).
