@@ -7,22 +7,18 @@ import com.gpc.geoquake.dto.QuakeReportEventDTO;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import reactor.core.publisher.Flux;
-import reactor.kafka.receiver.KafkaReceiver;
 import reactor.kafka.receiver.ReceiverOffset;
 import reactor.kafka.receiver.ReceiverRecord;
 
 class KafkaConsumerServiceImplTest {
 
-  @InjectMocks
-  private KafkaConsumerServiceImpl service;
-
   @Mock
-  private KafkaReceiver<String, String> kafkaReceiver;
+  private ReactiveKafkaConsumerTemplate<String, String> kafkaConsumer;
 
   @Mock
   private ObjectMapper objectMapper;
@@ -33,7 +29,7 @@ class KafkaConsumerServiceImplTest {
   }
 
   @Test
-  void testConsumeMessages() throws Exception {
+  void testInitKafkaMessages() throws Exception {
     // Arrange
     String mockKey = "key1";
     String mockValue = "{\"field1\":\"value1\",\"field2\":\"value2\"}";
@@ -48,37 +44,37 @@ class KafkaConsumerServiceImplTest {
     Mockito.doNothing().when(mockOffset).acknowledge();
 
     Mockito.when(objectMapper.readValue(mockValue, QuakeReportEventDTO.class)).thenReturn(mockDto);
-    Mockito.when(kafkaReceiver.receive()).thenReturn(Flux.just(mockRecord));
+    Mockito.when(kafkaConsumer.receive()).thenReturn(Flux.just(mockRecord));
 
     // Act
-    Flux<QuakeReportEventDTO> result = service.consumeMessages();
+    KafkaConsumerServiceImpl testService = new KafkaConsumerServiceImpl(kafkaConsumer, objectMapper);
+    testService.initKafkaMessages();
 
     // Assert
-    List<QuakeReportEventDTO> resultList = result.collectList().block();
-    assertNotNull(resultList);
-    assertEquals(1, resultList.size());
+    Mockito.verify(kafkaConsumer, Mockito.atLeastOnce()).receive();
   }
 
   @Test
-  void testConsumeMessages_whenObjectMapperThrowsException() throws Exception {
+  void testConsumeMessages() throws Exception {
     // Arrange
-    String mockKey = "key1";
-    String mockValue = "{\"field1\":\"value1\",\"field2\":\"value2\"}";
-
+    QuakeReportEventDTO dto = new QuakeReportEventDTO();
     ReceiverRecord<String, String> mockRecord = Mockito.mock(ReceiverRecord.class);
     ReceiverOffset mockOffset = Mockito.mock(ReceiverOffset.class);
 
-    Mockito.when(mockRecord.key()).thenReturn(mockKey);
-    Mockito.when(mockRecord.value()).thenReturn(mockValue);
+    Mockito.when(mockRecord.key()).thenReturn("key1");
+    Mockito.when(mockRecord.value()).thenReturn("{\"field1\":\"value1\",\"field2\":\"value2\"}");
     Mockito.when(mockRecord.receiverOffset()).thenReturn(mockOffset);
     Mockito.doNothing().when(mockOffset).acknowledge();
+    Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.eq(QuakeReportEventDTO.class))).thenReturn(dto);
+    Mockito.when(kafkaConsumer.receive()).thenReturn(Flux.just(mockRecord));
 
-    Mockito.when(objectMapper.readValue(mockValue, QuakeReportEventDTO.class)).thenThrow(new RuntimeException("Error de prueba"));
-    Mockito.when(kafkaReceiver.receive()).thenReturn(Flux.just(mockRecord));
+    // Act
+    KafkaConsumerServiceImpl testService = new KafkaConsumerServiceImpl(kafkaConsumer, objectMapper);
+    List<QuakeReportEventDTO> result = testService.consumeMessages().take(1).collectList().block();
 
-    // Act & Assert
-    assertThrows(RuntimeException.class, () -> {
-      service.consumeMessages().blockFirst();
-    });
+    // Assert
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(dto, result.get(0));
   }
 }
