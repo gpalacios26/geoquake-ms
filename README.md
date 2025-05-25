@@ -27,10 +27,6 @@ Con **Maven**:
 mvn spring-boot:run
 ```
 
-Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-
-Especificación OpenAPI (en JSON): [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
-
 ---
 
 ## 🌐 Endpoints de la API
@@ -52,6 +48,18 @@ mvn clean test
 Las pruebas utilizan `JUnit 5`, `Mockito` y `WebTestClient` para verificar la funcionalidad de la API.
 
 El reporte de cobertura de pruebas se genera con `Jacoco` en la carpeta `target/site/jacoco/index.html`.
+
+---
+
+## 🌐 Ejecutar la aplicación con Docker Desktop y Kubernetes
+
+```bash
+kubectl apply -f k8-deployment.yaml
+```
+
+Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+
+Especificación OpenAPI (en JSON): [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
 ---
 

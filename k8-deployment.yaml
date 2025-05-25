@@ -202,7 +202,7 @@ spec:
     spec:
       containers:
       - name: geoquake-app
-        image: localhost:5000/geoquake-app
+        image: gpalacios26/geoquake-backend
         ports:
         - containerPort: 8080
         envFrom:
