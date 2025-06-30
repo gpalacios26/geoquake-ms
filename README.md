@@ -57,6 +57,12 @@ El reporte de cobertura de pruebas se genera con `Jacoco` en la carpeta `target/
 kubectl apply -f k8-deployment.yaml
 ```
 
+![Docker Desktop - Kubernetes Deployment](images/contenedores-deploy.jpg)
+
+![Aplicación Test - Web](images/web-test.jpg)
+
+![Aplicación Test - Postman](images/postman-test.jpg)
+
 Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
 Especificación OpenAPI (en JSON): [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
